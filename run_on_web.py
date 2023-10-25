@@ -7,6 +7,7 @@ from threading import Thread
 import queue
 import rtmidi
 
+
 import logging
 log = logging.getLogger('werkzeug')
 log.setLevel(logging.ERROR)
@@ -59,11 +60,17 @@ def get_buffer_and_transcribe(model, q):
         on_pitch = []
         while True:
             data = stream._buff.get()
+
             decoded = np.frombuffer(data, dtype=np.int16) / 32768
+
+            print("decoded: {}".format(decoded.shape))
             if CHANNELS > 1:
                 decoded = decoded.reshape(-1, CHANNELS)
                 decoded = np.mean(decoded, axis=1)
             frame_output = transcriber.inference(decoded)
+
+            print("frame_output: {}".format(frame_output))
+
             on_pitch += frame_output[0]
             for pitch in frame_output[0]:
                 note_on = [0x90, pitch + 21, 64]
